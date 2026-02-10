@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>RWE | ESG Due Diligence Assistant</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+
   <style>
     :root{
       --bg:#07101f;
@@ -15,7 +18,6 @@
       --sidebarW: 420px;
       --pad: 16px;
       --radius: 16px;
-      --accent:#3aa0ff;
     }
 
     html, body{
@@ -58,110 +60,92 @@
     ul{ margin:22px 0 0; padding-left:18px; color:var(--muted); font-size:14px; line-height:1.6; }
 
     .right{
-      padding: var(--pad);
       position:relative;
+      padding: var(--pad);
+      height: 100vh;
+      box-sizing: border-box;
     }
 
-    .chatShell{
-      height: calc(100vh - (var(--pad) * 2));
+    /* This is our container for the chat */
+    .chatHost{
+      position: relative; /* Changed from absolute to relative to hold the embed */
+      width: 100%;
+      height: 100%;
       border:1px solid var(--border);
       border-radius: var(--radius);
       overflow:hidden;
       background: rgba(255,255,255,.02);
       backdrop-filter: blur(6px);
       box-shadow: 0 30px 80px rgba(0,0,0,.55);
-      display:flex;
-      flex-direction:column;
     }
 
-    .chatHeader{
-      padding:16px 18px;
-      border-bottom:1px solid var(--border);
-      background: linear-gradient(90deg, rgba(58,160,255,.18), rgba(255,255,255,.02));
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .chatHeader .title{ font-weight:700; }
-    .chatHeader .status{ color: var(--muted); font-size:13px; }
+    /* ===== n8n widget overrides ===== */
+    
+    /* 1. Hide the standard launcher button */
+    .n8n-chat-launcher { display:none !important; }
 
-    .messages{
-      flex:1;
-      padding:18px;
-      overflow:auto;
-      background: var(--panel);
-    }
-
-    .msg{
-      max-width: 780px;
-      padding:12px 14px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      margin:0 0 12px;
-      line-height:1.55;
-      white-space:pre-wrap;
-      word-wrap:break-word;
-    }
-    .msg.user{
-      margin-left:auto;
-      background:#1a2a4a;
-    }
-    .msg.bot{
-      margin-right:auto;
-      background:#0f1b33;
+    /* 2. Force the chat window to fill the .chatHost container */
+    .n8n-chat-window {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      max-height: none !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      z-index: 10 !important;
+      background: var(--panel) !important;
     }
 
-    .composer{
-      padding:14px;
-      border-top:1px solid var(--border);
-      background: var(--panel2);
-      display:flex;
-      gap:10px;
-    }
-    textarea{
-      flex:1;
-      resize:none;
-      height:44px;
-      max-height:140px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline:none;
-      font-size:14px;
-      line-height:1.4;
-    }
-    textarea::placeholder{ color: var(--muted); }
-
-    button{
-      width:110px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(58,160,255,.16);
-      color: var(--text);
-      font-weight:600;
-      cursor:pointer;
-    }
-    button:disabled{
-      opacity:.55;
-      cursor:not-allowed;
+    /* 3. Styling the internals to match your theme */
+    .n8n-chat, 
+    .n8n-chat-content {
+      background: var(--panel) !important;
+      color: var(--text) !important;
     }
 
-    .hint{
-      padding:10px 18px;
-      color: var(--muted);
-      font-size:12px;
-      border-top:1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.01);
+    .n8n-chat-header {
+      background: linear-gradient(90deg, rgba(58,160,255,.18), rgba(255,255,255,.02)) !important;
+      color: var(--text) !important;
+      border-bottom:1px solid var(--border) !important;
     }
 
+    .n8n-chat-messages {
+      background: var(--panel) !important;
+    }
+
+    .n8n-chat-message,
+    .n8n-chat-message * {
+      color: var(--text) !important;
+    }
+
+    .n8n-chat-input {
+      background: var(--panel2) !important;
+      border-top: 1px solid var(--border) !important;
+    }
+
+    .n8n-chat-input textarea,
+    .n8n-chat-input input {
+      background: transparent !important;
+      color: var(--text) !important;
+    }
+    
+    .n8n-chat-input textarea::placeholder {
+      color: var(--muted) !important;
+    }
+    
+    /* Hide the footer branding if possible/needed */
+    .n8n-chat-footer {
+        display: none !important;
+    }
+
+    /* Mobile */
     @media (max-width: 900px){
       :root{ --sidebarW: 0px; }
       .layout{ grid-template-columns: 1fr; }
       .sidebar{ display:none; }
-      button{ width:90px; }
     }
   </style>
 </head>
@@ -184,137 +168,29 @@
     </aside>
 
     <main class="right">
-      <div class="chatShell">
-        <div class="chatHeader">
-          <div class="title">ESG Due Diligence Chat</div>
-          <div class="status" id="status">Ready</div>
-        </div>
-
-        <div class="messages" id="messages"></div>
-
-        <div class="composer">
-          <textarea id="input" placeholder="Type your message… (Enter to send, Shift+Enter for new line)"></textarea>
-          <button id="sendBtn">Send</button>
-        </div>
-
-        <div class="hint">
-          Note: This page uses your existing n8n Chat Trigger webhook directly. No widget, no popups.
-        </div>
-      </div>
+      <div class="chatHost"></div>
     </main>
   </div>
 
-  <script>
-    // ✅ Put your existing Chat Trigger URL here (do NOT change n8n)
-    const WEBHOOK_URL = "https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat";
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
 
-    // Stable session id so memory/conversation can work on the n8n side (if enabled)
-    const SESSION_ID_KEY = "esg_chat_session_id";
-    const sessionId = localStorage.getItem(SESSION_ID_KEY) || crypto.randomUUID();
-    localStorage.setItem(SESSION_ID_KEY, sessionId);
-
-    const messagesEl = document.getElementById("messages");
-    const inputEl = document.getElementById("input");
-    const sendBtn = document.getElementById("sendBtn");
-    const statusEl = document.getElementById("status");
-
-    function addMessage(text, who) {
-      const div = document.createElement("div");
-      div.className = `msg ${who}`;
-      div.textContent = text;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    function setStatus(s) {
-      statusEl.textContent = s;
-    }
-
-    // ✅ IMPORTANT:
-    // n8n chat trigger payload shape can differ by version.
-    // This tries a common shape first, and then falls back gracefully.
-    async function sendMessage(text) {
-      setStatus("Sending…");
-      sendBtn.disabled = true;
-
-      // Show user message
-      addMessage(text, "user");
-
-      // Common payload options:
-      const payloadsToTry = [
-        { message: text, sessionId },
-        { chatInput: text, sessionId },
-        { input: text, sessionId },
-        { text, sessionId },
-      ];
-
-      let lastErr = null;
-
-      for (const body of payloadsToTry) {
-        try {
-          const res = await fetch(WEBHOOK_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-
-          const ct = res.headers.get("content-type") || "";
-          const data = ct.includes("application/json") ? await res.json() : await res.text();
-
-          // Try to extract assistant reply from many possible shapes
-          const reply =
-            (typeof data === "string" && data) ||
-            data?.output ||
-            data?.text ||
-            data?.message ||
-            data?.data?.output ||
-            data?.data?.text ||
-            (Array.isArray(data) ? (data[0]?.output || data[0]?.text || data[0]?.message) : null);
-
-          if (reply) {
-            addMessage(reply, "bot");
-            setStatus("Ready");
-            sendBtn.disabled = false;
-            return;
-          }
-
-          // If response is 200 but unknown shape, show it to debug
-          addMessage("Received response but couldn't parse it. Open DevTools → Network to inspect the response.", "bot");
-          console.log("Raw response:", data);
-          setStatus("Ready");
-          sendBtn.disabled = false;
-          return;
-
-        } catch (e) {
-          lastErr = e;
+    createChat({
+      webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat',
+      target: '.chatHost', // KEY CHANGE: Renders inside the div
+      mode: 'window',      // KEY CHANGE: Forces "open" state
+      collapsed: false,
+      showWelcomeScreen: false, // Helps avoid the "Start" overlay
+      initialMessages: [
+        "Hello! I am ready to assist with your ESG due diligence."
+      ],
+      i18n: {
+        en: {
+          title: 'ESG Assessment',
+          subtitle: 'RWE AI Assistant'
         }
       }
-
-      console.error(lastErr);
-      addMessage("Could not reach the workflow. Check n8n Executions and CORS settings.", "bot");
-      setStatus("Error");
-      sendBtn.disabled = false;
-    }
-
-    sendBtn.addEventListener("click", () => {
-      const text = inputEl.value.trim();
-      if (!text) return;
-      inputEl.value = "";
-      sendMessage(text);
     });
-
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-      }
-    });
-
-    // Initial greeting (your page, not widget)
-    addMessage(
-      "Welcome. I can guide an ESG due diligence assessment (E/S/G). Start by telling me the company/project name, sector, and geography.",
-      "bot"
-    );
   </script>
 </body>
 </html>
