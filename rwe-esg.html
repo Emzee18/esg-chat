@@ -192,18 +192,35 @@
     </main>
   </div>
 
-  <script type="module">
-    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
+ <script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
 
-    createChat({
-      webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
-    });
+  createChat({
+    webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
+  });
 
-    // Open automatically
-    setTimeout(() => {
-      const launcher = document.querySelector('.n8n-chat-launcher button, .n8n-chat-launcher');
-      if (launcher) launcher.click();
-    }, 400);
-  </script>
+  function openChat() {
+    // Try a few possible launcher selectors (n8n versions differ)
+    const btn =
+      document.querySelector('.n8n-chat-launcher button') ||
+      document.querySelector('.n8n-chat-launcher') ||
+      document.querySelector('[aria-label="Open chat"]') ||
+      document.querySelector('button[aria-label*="chat" i]');
+
+    if (btn) btn.click();
+  }
+
+  // Auto-open (retries because the widget loads async)
+  let tries = 0;
+  const timer = setInterval(() => {
+    openChat();
+    tries += 1;
+    if (tries >= 15) clearInterval(timer); // ~6 seconds total
+  }, 400);
+
+  // Also open on any click on the page (first click opens the chat)
+  // This solves the "icon in the middle does nothing" issue.
+  window.addEventListener('click', () => openChat(), { once: true });
+</script>
 </body>
 </html>
