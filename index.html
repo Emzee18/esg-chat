@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ESG Assessment Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- n8n chat styles -->
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0f0f0f;
+    }
+  </style>
+</head>
+<body>
+
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  createChat({
+    webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
+  });
+</script>
+
+</body>
+</html>
