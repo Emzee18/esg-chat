@@ -10,19 +10,17 @@
   <style>
     :root{
       --bg:#07101f;
-      --panel:#0b1a33;
       --text:#ecf2ff;
       --muted:#b6c3df;
       --border:rgba(255,255,255,.14);
-      --accent:#3aa0ff;
-      --sidebarW: 420px; /* keep in sync with layout */
+      --sidebarW: 420px;
       --pad: 16px;
       --radius: 16px;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
+    html, body{
+      height:100%;
+      margin:0;
       background: radial-gradient(1200px 700px at 20% 10%, rgba(58,160,255,.10), transparent 55%),
                   radial-gradient(900px 600px at 80% 20%, rgba(0,255,170,.06), transparent 55%),
                   var(--bg);
@@ -45,7 +43,6 @@
 
     .badge{
       display:inline-flex;
-      gap:10px;
       align-items:center;
       padding:8px 12px;
       border:1px solid var(--border);
@@ -68,38 +65,32 @@
     }
 
     .right{
-      position:relative;
       padding: var(--pad);
+      position:relative;
     }
 
-    /* Decorative frame so it looks like an app panel */
     .frame{
       position:absolute;
       inset: var(--pad);
       border:1px solid var(--border);
       border-radius: var(--radius);
+      overflow:hidden;
       background: rgba(255,255,255,.02);
       backdrop-filter: blur(6px);
-      pointer-events:none;
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
+      pointer-events:none; /* purely decorative */
     }
 
-    /* ========= THE IMPORTANT PART =========
-       Your widget refuses to embed, so we PIN it to the right panel.
-       This makes it "full size" within the right side. */
+    /* Hide the launcher button (we auto-open) */
     .n8n-chat-launcher { display:none !important; }
 
-    /* Catch common widget containers robustly */
-    .n8n-chat-window,
-    [class*="chat-window"],
-    [class*="ChatWindow"] {
+    /* Pin the chat window to the right panel area */
+    .n8n-chat-window, [class*="chat-window"], [class*="ChatWindow"]{
       position: fixed !important;
       top: var(--pad) !important;
       right: var(--pad) !important;
       bottom: var(--pad) !important;
-
-      /* left edge equals sidebar width + padding */
       left: calc(var(--sidebarW) + var(--pad)) !important;
-
       width: auto !important;
       height: auto !important;
       max-width: none !important;
@@ -108,86 +99,15 @@
       box-shadow: 0 30px 80px rgba(0,0,0,.55) !important;
       border:1px solid var(--border) !important;
       overflow:hidden !important;
-      z-index: 9999 !important;
-      background: #0b1220 !important;
+      z-index: 99999 !important;
     }
 
-    /* Make internal areas fill height */
-    .n8n-chat,
-    .n8n-chat-content,
-    [class*="chat-content"],
-    [class*="ChatContent"] {
-      height: 100% !important;
-    }
-
-    /* ===== Strong dark theme overrides ===== */
-    .n8n-chat-window * { color: var(--text) !important; }
-    .n8n-chat-window a { color: var(--accent) !important; }
-
-    /* Header */
-    .n8n-chat-header,
-    [class*="chat-header"],
-    [class*="ChatHeader"]{
-      background: linear-gradient(90deg, rgba(58,160,255,.18), rgba(255,255,255,.02)) !important;
-      border-bottom: 1px solid var(--border) !important;
-    }
-
-    /* Message area */
-    .n8n-chat-messages,
-    [class*="chat-messages"],
-    [class*="ChatMessages"]{
-      background: rgba(255,255,255,.02) !important;
-    }
-
-    /* Input */
-    .n8n-chat-input,
-    [class*="chat-input"],
-    [class*="ChatInput"]{
-      background: #081225 !important;
-      border-top: 1px solid var(--border) !important;
-    }
-
-    .n8n-chat-input textarea,
-    .n8n-chat-input input,
-    [class*="chat-input"] textarea,
-    [class*="chat-input"] input{
-      background: transparent !important;
-      color: var(--text) !important;
-    }
-
-    .n8n-chat-input textarea::placeholder,
-    .n8n-chat-input input::placeholder{
-      color: var(--muted) !important;
-    }
-
-    /* Mobile: stack and make chat full screen */
+    /* Mobile */
     @media (max-width: 900px){
       :root{ --sidebarW: 0px; }
       .layout{ grid-template-columns: 1fr; }
       .sidebar{ display:none; }
       .n8n-chat-window{ left: var(--pad) !important; }
-      .n8n-chat-launcher,
-[class*="launcher"] { display:none !important; }
-      /* --- FIX: remove the modal/backdrop overlay that blocks the chat --- */
-.n8n-chat-backdrop,
-.n8n-chat-overlay,
-.n8n-chat-modal-backdrop,
-[class*="backdrop"],
-[class*="Backdrop"],
-[class*="overlay"],
-[class*="Overlay"]{
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Ensure the actual chat window stays on top */
-.n8n-chat-window,
-[class*="chat-window"],
-[class*="ChatWindow"]{
-  z-index: 99999 !important;
-}
-
     }
   </style>
 </head>
@@ -214,35 +134,77 @@
     </main>
   </div>
 
- <script type="module">
-  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
 
-  createChat({
-    webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
-  });
+    createChat({
+      webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
+    });
 
-  function openChat() {
-    // Try a few possible launcher selectors (n8n versions differ)
-    const btn =
-      document.querySelector('.n8n-chat-launcher button') ||
-      document.querySelector('.n8n-chat-launcher') ||
-      document.querySelector('[aria-label="Open chat"]') ||
-      document.querySelector('button[aria-label*="chat" i]');
+    // ---- 1) Auto-open the chat (retry because widget loads async)
+    function tryOpen() {
+      const btn =
+        document.querySelector('.n8n-chat-launcher button') ||
+        document.querySelector('.n8n-chat-launcher') ||
+        document.querySelector('button[aria-label*="chat" i]') ||
+        document.querySelector('[aria-label="Open chat"]');
+      if (btn) btn.click();
+    }
 
-    if (btn) btn.click();
-  }
+    let attempts = 0;
+    const openTimer = setInterval(() => {
+      tryOpen();
+      attempts++;
+      if (attempts > 20) clearInterval(openTimer); // ~8s max
+    }, 400);
 
-  // Auto-open (retries because the widget loads async)
-  let tries = 0;
-  const timer = setInterval(() => {
-    openChat();
-    tries += 1;
-    if (tries >= 15) clearInterval(timer); // ~6 seconds total
-  }, 400);
+    // ---- 2) Kill the blocking overlay/backdrop reliably (no class-name guessing)
+    function neutralizeOverlay(el) {
+      try {
+        const cs = getComputedStyle(el);
+        // Heuristic: full-screen fixed element that can block clicks
+        const coversScreen =
+          cs.position === 'fixed' &&
+          cs.inset !== 'auto' &&
+          (parseFloat(cs.zIndex || '0') >= 1000 || cs.zIndex === 'auto') &&
+          cs.pointerEvents !== 'none';
 
-  // Also open on any click on the page (first click opens the chat)
-  // This solves the "icon in the middle does nothing" issue.
-  window.addEventListener('click', () => openChat(), { once: true });
-</script>
+        if (!coversScreen) return;
+
+        // Don't touch the actual chat window
+        const isChatWindow =
+          el.className?.toString().includes('chat-window') ||
+          el.className?.toString().includes('n8n-chat-window');
+        if (isChatWindow) return;
+
+        // If it contains inputs/textarea, probably not a backdrop
+        if (el.querySelector && el.querySelector('input, textarea, button')) return;
+
+        // Neutralize it
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0';
+        el.style.background = 'transparent';
+      } catch {}
+    }
+
+    // scan existing nodes once
+    setTimeout(() => {
+      document.querySelectorAll('body *').forEach(neutralizeOverlay);
+    }, 800);
+
+    // watch for newly added overlay nodes
+    const mo = new MutationObserver((muts) => {
+      for (const m of muts) {
+        for (const n of m.addedNodes) {
+          if (n && n.nodeType === 1) {
+            neutralizeOverlay(n);
+            // also check its children quickly
+            if (n.querySelectorAll) n.querySelectorAll('*').forEach(neutralizeOverlay);
+          }
+        }
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  </script>
 </body>
 </html>
