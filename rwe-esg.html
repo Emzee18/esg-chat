@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RWE | ESG Due Diligence Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- n8n chat styles -->
+  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --text:#e8eefc;
+      --muted:#a9b6d3;
+      --border:rgba(255,255,255,.12);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    .layout{
+      height:100%;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+    }
+
+    .sidebar{
+      padding:32px;
+      border-right:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+    }
+
+    .badge{
+      display:inline-block;
+      padding:8px 12px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:16px;
+    }
+
+    h1{
+      margin:0 0 12px;
+      font-size:32px;
+      line-height:1.2;
+    }
+
+    p{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:15px;
+    }
+
+    ul{
+      margin-top:24px;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .chat-wrap{
+      position:relative;
+      padding:16px;
+    }
+
+    .chat-frame{
+      position:absolute;
+      inset:16px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      background: rgba(255,255,255,.02);
+    }
+
+    /* ---- Force full-screen chat ---- */
+    .n8n-chat-launcher{ display:none !important; }
+    .n8n-chat-window{
+      position:absolute !important;
+      inset:0 !important;
+      width:100% !important;
+      height:100% !important;
+      max-width:none !important;
+      max-height:none !important;
+      border-radius:0 !important;
+      box-shadow:none !important;
+    }
+
+    @media (max-width: 900px){
+      .layout{ grid-template-columns: 1fr; }
+      .sidebar{ border-right:none; border-bottom:1px solid var(--border); }
+      .chat-frame{ inset:8px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="badge">RWE • ESG Due Diligence</div>
+      <h1>ESG Assessment Assistant</h1>
+      <p>
+        This assistant supports structured ESG due diligence for
+        energy-sector projects and suppliers, aligned with RWE-style
+        internal assessments.
+      </p>
+
+      <ul>
+        <li>Climate & emissions (Scopes 1–3)</li>
+        <li>Human rights & supply chain risk</li>
+        <li>Governance, compliance & controls</li>
+        <li>Risk flags and follow-up actions</li>
+      </ul>
+    </aside>
+
+    <main class="chat-wrap">
+      <div class="chat-frame" id="chat"></div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+    createChat({
+      webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/dbcd2aed-d151-4cc5-b112-7f498b1120f7/chat',
+      target: '#chat'
+    });
+
+    // Auto-open safety (for older widget behavior)
+    setTimeout(() => {
+      const btn = document.querySelector('.n8n-chat-launcher button, .n8n-chat-launcher');
+      if (btn) btn.click();
+    }, 300);
+  </script>
+</body>
+</html>
