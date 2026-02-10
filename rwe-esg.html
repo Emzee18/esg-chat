@@ -134,77 +134,75 @@
     </main>
   </div>
 
-  <script type="module">
-    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
+ <script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@latest/dist/chat.bundle.es.js';
 
-    createChat({
-      webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
-    });
+  createChat({
+    webhookUrl: 'https://dranzer18.app.n8n.cloud/webhook/f5c25a43-700c-4a81-9390-c77e1194dbfa/chat'
+  });
 
-    // ---- 1) Auto-open the chat (retry because widget loads async)
-    function tryOpen() {
-      const btn =
-        document.querySelector('.n8n-chat-launcher button') ||
-        document.querySelector('.n8n-chat-launcher') ||
-        document.querySelector('button[aria-label*="chat" i]') ||
-        document.querySelector('[aria-label="Open chat"]');
-      if (btn) btn.click();
-    }
+  // ---- Helpers
+  const isChatWindow = (el) => {
+    const cls = (el.className || '').toString();
+    return cls.includes('n8n-chat-window') || cls.includes('chat-window') || cls.includes('ChatWindow');
+  };
 
-    let attempts = 0;
-    const openTimer = setInterval(() => {
-      tryOpen();
-      attempts++;
-      if (attempts > 20) clearInterval(openTimer); // ~8s max
-    }, 400);
+  const looksLikeBlocker = (el) => {
+    if (!el || el.nodeType !== 1) return false;
+    if (isChatWindow(el)) return false;
 
-    // ---- 2) Kill the blocking overlay/backdrop reliably (no class-name guessing)
-    function neutralizeOverlay(el) {
-      try {
-        const cs = getComputedStyle(el);
-        // Heuristic: full-screen fixed element that can block clicks
-        const coversScreen =
-          cs.position === 'fixed' &&
-          cs.inset !== 'auto' &&
-          (parseFloat(cs.zIndex || '0') >= 1000 || cs.zIndex === 'auto') &&
-          cs.pointerEvents !== 'none';
+    const cs = getComputedStyle(el);
 
-        if (!coversScreen) return;
+    // Must be on top and covering the right panel
+    const posOk = cs.position === 'fixed' || cs.position === 'absolute';
+    if (!posOk) return false;
 
-        // Don't touch the actual chat window
-        const isChatWindow =
-          el.className?.toString().includes('chat-window') ||
-          el.className?.toString().includes('n8n-chat-window');
-        if (isChatWindow) return;
+    const z = cs.zIndex === 'auto' ? 0 : parseInt(cs.zIndex || '0', 10);
+    if (z < 1000) return false;
 
-        // If it contains inputs/textarea, probably not a backdrop
-        if (el.querySelector && el.querySelector('input, textarea, button')) return;
+    const r = el.getBoundingClientRect();
+    const bigEnough = r.width > window.innerWidth * 0.4 && r.height > window.innerHeight * 0.4;
+    if (!bigEnough) return false;
 
-        // Neutralize it
-        el.style.pointerEvents = 'none';
-        el.style.opacity = '0';
-        el.style.background = 'transparent';
-      } catch {}
-    }
+    // If it has inputs/buttons, it might be real UI; leave it
+    if (el.querySelector && el.querySelector('input, textarea, button, a')) return false;
 
-    // scan existing nodes once
-    setTimeout(() => {
-      document.querySelectorAll('body *').forEach(neutralizeOverlay);
-    }, 800);
+    return true;
+  };
 
-    // watch for newly added overlay nodes
-    const mo = new MutationObserver((muts) => {
-      for (const m of muts) {
-        for (const n of m.addedNodes) {
-          if (n && n.nodeType === 1) {
-            neutralizeOverlay(n);
-            // also check its children quickly
-            if (n.querySelectorAll) n.querySelectorAll('*').forEach(neutralizeOverlay);
-          }
-        }
+  const killBlockers = () => {
+    document.querySelectorAll('body *').forEach((el) => {
+      if (looksLikeBlocker(el)) {
+        // Remove the element entirely (strongest, prevents “pink screen”)
+        el.remove();
       }
     });
-    mo.observe(document.body, { childList: true, subtree: true });
-  </script>
+  };
+
+  const openChat = () => {
+    const btn =
+      document.querySelector('.n8n-chat-launcher button') ||
+      document.querySelector('.n8n-chat-launcher') ||
+      document.querySelector('button[aria-label*="chat" i]') ||
+      document.querySelector('[aria-label="Open chat"]');
+    if (btn) btn.click();
+  };
+
+  // ---- Boot sequence: repeatedly open, and repeatedly remove blockers
+  let ticks = 0;
+  const loop = setInterval(() => {
+    openChat();
+    killBlockers();
+    ticks++;
+    if (ticks > 30) clearInterval(loop); // ~12s
+  }, 400);
+
+  // Watch for new overlays being inserted later
+  const mo = new MutationObserver(() => killBlockers());
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  // Also re-check on resize
+  window.addEventListener('resize', () => setTimeout(killBlockers, 100));
+</script>
 </body>
 </html>
