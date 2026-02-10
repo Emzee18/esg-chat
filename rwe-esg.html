@@ -241,12 +241,13 @@
       addMessage(text, "user");
 
       // Common payload options:
-      const payloadsToTry = [
-        { message: text, sessionId },
-        { chatInput: text, sessionId },
-        { input: text, sessionId },
-        { text, sessionId },
-      ];
+     const payloadsToTry = [
+  {
+    action: "sendMessage",
+    sessionId,
+    chatInput: text,
+  }
+];
 
       let lastErr = null;
 
@@ -262,14 +263,17 @@
           const data = ct.includes("application/json") ? await res.json() : await res.text();
 
           // Try to extract assistant reply from many possible shapes
-          const reply =
-            (typeof data === "string" && data) ||
-            data?.output ||
-            data?.text ||
-            data?.message ||
-            data?.data?.output ||
-            data?.data?.text ||
-            (Array.isArray(data) ? (data[0]?.output || data[0]?.text || data[0]?.message) : null);
+         const reply =
+  (typeof data === "string" && data) ||
+  data?.output ||
+  data?.text ||
+  data?.message ||
+  data?.data?.output ||
+  data?.data?.text ||
+  data?.data?.message ||
+  data?.result ||
+  null;
+
 
           if (reply) {
             addMessage(reply, "bot");
