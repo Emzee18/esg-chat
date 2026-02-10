@@ -168,6 +168,26 @@
       .n8n-chat-window{ left: var(--pad) !important; }
       .n8n-chat-launcher,
 [class*="launcher"] { display:none !important; }
+      /* --- FIX: remove the modal/backdrop overlay that blocks the chat --- */
+.n8n-chat-backdrop,
+.n8n-chat-overlay,
+.n8n-chat-modal-backdrop,
+[class*="backdrop"],
+[class*="Backdrop"],
+[class*="overlay"],
+[class*="Overlay"]{
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ensure the actual chat window stays on top */
+.n8n-chat-window,
+[class*="chat-window"],
+[class*="ChatWindow"]{
+  z-index: 99999 !important;
+}
+
     }
   </style>
 </head>
